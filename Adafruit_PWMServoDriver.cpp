@@ -257,6 +257,37 @@ uint8_t Adafruit_PWMServoDriver::setPWM(uint8_t num, uint16_t on,
   }
 }
 
+uint8_t Adafruit_PWMServoDriver::setPWMchannels(uint8_t start, uint16_t *on, uint16_t *off, uint8_t number)
+{
+#ifdef ENABLE_DEBUG_OUTPUT
+    Serial.print("Setting PWM ");
+    Serial.print(num);
+    Serial.print(": ");
+    Serial.print(on);
+    Serial.print("->");
+    Serial.println(off);
+#endif
+
+    uint8_t buffer[1 + 4 * number];
+    buffer[0] = PCA9685_LED0_ON_L + 4 * start;
+    for (size_t i = 0; i < number; i++)
+    {
+        buffer[4 * i + 1] = on[i];
+        buffer[4 * i + 2] = on[i] >> 8;
+        buffer[4 * i + 3] = off[i];
+        buffer[4 * i + 4] = off[i] >> 8; /* code */
+    }
+
+    if (i2c_dev->write(buffer, 1 + 4 * number))
+    {
+        return 0;
+    }
+    else
+    {
+        return 1;
+    }
+};
+
 /*!
  *   @brief  Helper to set pin PWM output. Sets pin without having to deal with
  * on/off tick placement and properly handles a zero value as completely off and
